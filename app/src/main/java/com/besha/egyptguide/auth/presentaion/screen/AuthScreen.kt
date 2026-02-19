@@ -27,8 +27,8 @@ fun AurhScreen(rootController: NavController) {
         NavHost(navController, startDestination = ScreenResources.LoginRoute) {
             composable<ScreenResources.LoginRoute> {
                 LogInScreen(
-                    rootController,
-                    navController
+                   rootController= rootController,
+                    navController = navController
                 )
             }
 

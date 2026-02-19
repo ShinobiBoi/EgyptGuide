@@ -181,6 +181,7 @@ class GoogleAuthClient(
 
             val user = authResult.user ?: throw IllegalStateException("Login failed")
 
+
             // 2. Check if email is verified
             if (!user.isEmailVerified) {
                 return LoginResponse(
@@ -188,6 +189,11 @@ class GoogleAuthClient(
                     errorMessage = "Please verify your email before logging in."
                 )
             }
+
+            // 3. Get Firebase ID token (JWT)
+            val idTokenResult = user.getIdToken( true).await()
+            val idToken = idTokenResult.token
+            Log.d("TAG", "Firebase ID Token: $idToken")  // <-- This logs the JWT
 
             // 4. Return successful login
             LoginResponse(
@@ -223,6 +229,5 @@ class GoogleAuthClient(
             profilePhoto = photoUrl?.toString()
         )
     }
-
 
 }

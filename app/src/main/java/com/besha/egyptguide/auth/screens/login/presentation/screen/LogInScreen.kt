@@ -83,7 +83,10 @@ fun LogInScreen(
     ) {
         if (state.logInState.isSuccess) {
             Toast.makeText(context, "success", Toast.LENGTH_SHORT).show()
-            viewModel.executeAction(LogInActions.ResetState)
+            rootController.navigate(ScreenResources.MainRoute) {
+                popUpTo(ScreenResources.AuthRoute) { inclusive = true }
+                launchSingleTop = true
+            }
         }
         if (state.logInState.errorThrowable != null) {
             Toast.makeText(context, "${state.logInState.errorThrowable!!.message}", Toast.LENGTH_SHORT).show()

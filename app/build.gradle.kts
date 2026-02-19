@@ -9,11 +9,12 @@ plugins {
     //dagger hilt
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.google.gms.google.services)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
     namespace = "com.besha.egyptguide"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.besha.egyptguide"
@@ -43,7 +44,9 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
+
 }
 
 dependencies {
@@ -79,6 +82,10 @@ dependencies {
     implementation(libs.firebase.firestore)
     ksp(libs.hilt.compiler)
 
+    // Maps SDK for Android
+    implementation(libs.play.services.maps)
+    implementation(libs.places)
+    implementation(libs.maps.compose)
 
     implementation(libs.hilt.navigation.compose)
 
