@@ -16,12 +16,13 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.Place
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import javax.inject.Inject
 
-class MapsRepoImp @Inject constructor (private val mapsRemoteClient: MapsRemoteClient,private val context: Context): MapsRepo {
+class MapsRepoImp @Inject constructor (private val mapsRemoteClient: MapsRemoteClient, @ApplicationContext private val context: Context): MapsRepo {
 
 
     override suspend fun onQueryChange(
