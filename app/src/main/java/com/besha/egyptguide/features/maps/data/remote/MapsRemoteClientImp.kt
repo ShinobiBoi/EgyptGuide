@@ -3,12 +3,18 @@ package com.besha.egyptguide.features.maps.data.remote
 import com.besha.egyptguide.features.maps.domain.remote.MapsRemoteClient
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
+import com.google.android.libraries.places.api.model.Place
+import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FetchPlaceResponse
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import kotlinx.coroutines.tasks.await
+import java.util.Arrays
 import javax.inject.Inject
 
-class MapsRemoteClientImp @Inject constructor(private val placesClient: PlacesClient) : MapsRemoteClient {
+
+class MapsRemoteClientImp @Inject constructor(private val placesClient: PlacesClient) :
+    MapsRemoteClient {
 
 
     override suspend fun onQueryChange(
@@ -32,5 +38,26 @@ class MapsRemoteClientImp @Inject constructor(private val placesClient: PlacesCl
         return result.autocompletePredictions
 
     }
+
+    override suspend fun selectPlace(placeId: String, sessionToken: AutocompleteSessionToken): Place {
+
+        val fields = listOf(
+            Place.Field.ID,
+            Place.Field.DISPLAY_NAME,
+            Place.Field.LOCATION,
+            Place.Field.FORMATTED_ADDRESS
+        )
+
+        val request =
+            FetchPlaceRequest.builder(placeId, fields).setSessionToken(sessionToken).build()
+
+
+        val result = placesClient.fetchPlace(request).await()
+
+        return result.place
+
+
+    }
+
 
 }

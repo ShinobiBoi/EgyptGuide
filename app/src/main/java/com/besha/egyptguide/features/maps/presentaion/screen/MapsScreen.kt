@@ -1,79 +1,105 @@
 package com.besha.egyptguide.features.maps.presentaion.screen
 
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.besha.egyptguide.features.maps.presentaion.viewmodel.MapsActions
 import com.besha.egyptguide.features.maps.presentaion.viewmodel.MapsViewModel
-import com.google.android.gms.maps.model.Marker
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MarkerState
-import com.google.maps.android.compose.rememberCameraPositionState
+import com.google.android.gms.location.*
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLng
+import com.google.maps.android.compose.*
 
 @Composable
 fun MapsScreen(
     viewModel: MapsViewModel = hiltViewModel()
 ) {
+
     val state by viewModel.viewStates.collectAsState()
     val cameraPositionState = rememberCameraPositionState()
+    val focusManager = LocalFocusManager.current
+
+    var isSearchFocused by remember { mutableStateOf(false) }
+    var currentLocation by remember { mutableStateOf<LatLng?>(null) }
+
+
+    var hasLocationPermission by remember { mutableStateOf(false) }
+
+    // Permission launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasLocationPermission = granted
+    }
+
+    // Request permission on first composition
+    LaunchedEffect(Unit) {
+        permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+
+
+    /*
+     ============================================================
+     Camera follows user movement
+     ============================================================
+     */
+    LaunchedEffect(currentLocation) {
+        currentLocation?.let { latLng ->
+            cameraPositionState.animate(
+                CameraUpdateFactory.newLatLngZoom(latLng, 15f),
+                durationMs = 800
+            )
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
 
-        // Google Map
         GoogleMap(
             modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState
+            cameraPositionState = cameraPositionState,
+            onMapClick = {
+                focusManager.clearFocus()
+            },
+            properties = MapProperties(
+                isMyLocationEnabled = hasLocationPermission
+            )
         ) {
-/*            state.selectedPlace.data?.latLng?.let { latLng ->
+
+            state.selectedPlace.data?.location?.let { latLng ->
                 Marker(
                     state = MarkerState(position = latLng),
-                    title = state.selectedPlace.data?.name ?: "",
-                    snippet = state.selectedPlace.data?.address ?: ""
+                    title = state.selectedPlace.data?.displayName ?: "",
+                    snippet = state.selectedPlace.data?.formattedAddress ?: "",
                 )
-            }*/
+            }
         }
 
-        // Search UI
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // TextField
+
             TextField(
                 value = state.query,
                 onValueChange = {
@@ -86,7 +112,10 @@ fun MapsScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .height(56.dp)
+                    .onFocusChanged {
+                        isSearchFocused = it.isFocused
+                    },
                 placeholder = { Text("Search location") },
                 singleLine = true,
                 trailingIcon = {
@@ -99,7 +128,10 @@ fun MapsScreen(
                                 )
                             )
                         }) {
-                            Icon(imageVector = Icons.Default.Close, contentDescription = "Clear")
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Clear"
+                            )
                         }
                     }
                 },
@@ -108,19 +140,18 @@ fun MapsScreen(
                     focusedTextColor = MaterialTheme.colorScheme.onSurface,
                     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                     cursorColor = MaterialTheme.colorScheme.primary,
-                    focusedIndicatorColor = Color.Transparent,   // remove underline
-                    unfocusedIndicatorColor = Color.Transparent, // remove underline
-                    disabledIndicatorColor = Color.Transparent,  // remove underline when disabled
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,  // background color
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface  // background color
-                )
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface
+                ),
             )
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Predictions list
             state.predictions.data?.let { predictionsList ->
-                if (predictionsList.isNotEmpty()) {
+                if (isSearchFocused && predictionsList.isNotEmpty()) {
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -128,17 +159,13 @@ fun MapsScreen(
                         shape = RoundedCornerShape(12.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        Column() {
+                        Column {
 
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
-                                        /*                                 viewModel.executeAction(
-                                            MapsActions.OnSelectPlace(
-                                                prediction.placeId
-                                            )
-                                        )*/
+                                        focusManager.clearFocus()
                                     }
                                     .padding(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
@@ -171,11 +198,22 @@ fun MapsScreen(
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
-                                                /*                                 viewModel.executeAction(
-                                                    MapsActions.OnSelectPlace(
-                                                        prediction.placeId
+
+                                                viewModel.executeAction(
+                                                    MapsActions.OnQueryChange(
+                                                        prediction.getPrimaryText(null).toString(),
+                                                        state.sessionToken
                                                     )
-                                                )*/
+                                                )
+
+                                                viewModel.executeAction(
+                                                    MapsActions.SelectPlace(
+                                                        prediction.placeId,
+                                                        state.sessionToken
+                                                    )
+                                                )
+
+                                                focusManager.clearFocus()
                                             }
                                             .padding(12.dp),
                                         verticalAlignment = Alignment.CenterVertically
@@ -210,13 +248,13 @@ fun MapsScreen(
         }
     }
 
-    /*    // Animate camera when a place is selected
-        LaunchedEffect(state.selectedPlace.data) {
-            state.selectedPlace.data?.latLng?.let { latLng ->
-                cameraPositionState.animate(
-                    update = CameraUpdateFactory.newLatLngZoom(latLng, 16f),
-                    durationMs = 800
-                )
-            }
-        }*/
+    // Animate camera when a place is selected
+    LaunchedEffect(state.selectedPlace.data) {
+        state.selectedPlace.data?.location?.let { latLng ->
+            cameraPositionState.animate(
+                update = CameraUpdateFactory.newLatLngZoom(latLng, 16f),
+                durationMs = 800
+            )
+        }
+    }
 }
