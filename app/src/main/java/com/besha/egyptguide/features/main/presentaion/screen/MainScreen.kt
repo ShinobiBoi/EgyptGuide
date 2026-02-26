@@ -1,7 +1,5 @@
 package com.besha.egyptguide.features.main.presentaion.screen
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -49,13 +47,11 @@ fun MainScreen(rootController: NavController) {
         }
 
     ) { innerPadding ->
-        val x= innerPadding
-
 
         NavHost(
             navController,
             startDestination = ScreenResources.HomeRoute,
-            modifier = Modifier.padding()
+            modifier = Modifier.padding(bottom = innerPadding.calculateBottomPadding())
         ) {
             composable<ScreenResources.HomeRoute> {
                 HomeScreen(

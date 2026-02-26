@@ -40,6 +40,14 @@ class MapsRepoImp @Inject constructor (private val mapsRemoteClient: MapsRemoteC
 
     }
 
+    override suspend fun nearBySearch(
+        currentLocation: LatLng,
+        query: String
+    ): List<Place> {
+        return mapsRemoteClient.nearBySearch(currentLocation,query)
+
+    }
+
     private val fusedLocationClient: FusedLocationProviderClient by lazy {
         LocationServices.getFusedLocationProviderClient(context)
     }

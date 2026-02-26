@@ -11,6 +11,8 @@ data class MapsViewState (
     val query: String = "",
     val predictions: CommonViewState<List<AutocompletePrediction>> = CommonViewState(data = emptyList()),
     val selectedPlace: CommonViewState<Place> = CommonViewState(),
+    val nearByPlaces: CommonViewState<List<Place>> = CommonViewState(),
     val sessionToken : AutocompleteSessionToken?= null,
-    val currentLocation : CommonViewState<LatLng> = CommonViewState()
+    val currentLocation : CommonViewState<LatLng> = CommonViewState(),
+    val isCurrentlocationLoaded :Boolean = false
 ) : ViewState

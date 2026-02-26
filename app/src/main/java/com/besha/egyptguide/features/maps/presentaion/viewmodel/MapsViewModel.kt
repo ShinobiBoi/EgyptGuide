@@ -1,21 +1,13 @@
 package com.besha.egyptguide.features.maps.presentaion.viewmodel
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
-import androidx.compose.runtime.remember
-import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
+
+import android.util.Log
 import com.besha.egyptguide.appcore.mvi.CommonViewState
 import com.besha.egyptguide.appcore.mvi.MVIBaseViewModel
 import com.besha.egyptguide.features.maps.domain.usecases.CurrentLocationUseCase
+import com.besha.egyptguide.features.maps.domain.usecases.NearBySearchUseCase
 import com.besha.egyptguide.features.maps.domain.usecases.QueryChangeUseCase
 import com.besha.egyptguide.features.maps.domain.usecases.SetPlaceUseCase
-import com.google.android.gms.location.LocationCallback
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationResult
-import com.google.android.gms.location.LocationServices
-import com.google.android.gms.location.Priority
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,7 +21,8 @@ import javax.inject.Inject
 class MapsViewModel @Inject constructor(
     private val queryChangeUseCase: QueryChangeUseCase,
     private val setPlaceUseCase: SetPlaceUseCase,
-    private val getCurrentLocationUseCase: CurrentLocationUseCase
+    private val getCurrentLocationUseCase: CurrentLocationUseCase,
+    private val nearBySearchUseCase: NearBySearchUseCase
 ) : MVIBaseViewModel<MapsActions, MapsResults, MapsViewState>() {
 
 
@@ -50,19 +43,59 @@ class MapsViewModel @Inject constructor(
                 handleSelectPlace(action.placeId, action.sessionToken, this)
 
             }
-                is MapsActions.GetCurrentLocation -> {
-                    try {
-                       getCurrentLocationUseCase().collect { latLng ->
-                            emit(MapsResults.CurrentLocation(CommonViewState(data = latLng)))
-                        }
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-                }
 
-            else -> {}
+            is MapsActions.EmptySelectedPlace -> {
+                emit(MapsResults.EmptySelectedPlace)
+            }
+
+            is MapsActions.GetCurrentLocation -> {
+                try {
+                    getCurrentLocationUseCase().collect { latLng ->
+                        emit(MapsResults.CurrentLocation(CommonViewState(data = latLng)))
+
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+
+            is MapsActions.CurrentLocationLoaded -> {
+                emit(MapsResults.CurrentLocationLoaded(true))
+            }
+
+
+            is MapsActions.NearBySearch -> {
+                handleNearBySearch(action.currentLocation, action.query, this)
+            }
+
+            is MapsActions.EmptyNearBySearch -> {
+                emit(MapsResults.NearByPlaces(CommonViewState(data = emptyList())))
+            }
+
+            is MapsActions.ResetState -> {
+                emit(
+                    MapsResults.ResetState(
+                        action.sessionToken,
+                        action.currentLocation,
+                        action.isLocationLoaded
+                    )
+                )
+            }
 
         }
+
+    }
+
+    private suspend fun handleNearBySearch(
+        currentLocation: LatLng,
+        query: String,
+        collector: FlowCollector<MapsResults>
+    ) {
+
+        val result = nearBySearchUseCase(currentLocation, query)
+
+        collector.emit(MapsResults.NearByPlaces(CommonViewState(data = result)))
+
 
     }
 

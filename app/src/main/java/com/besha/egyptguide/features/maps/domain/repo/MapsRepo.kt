@@ -11,6 +11,9 @@ interface MapsRepo {
 
     suspend fun selectPlace(placeId: String, sessionToken: AutocompleteSessionToken): Place
 
+
+    suspend fun nearBySearch(currentLocation: LatLng,query : String): List<Place>
      fun getCurrentLocationFlow(): Flow<LatLng>
+
 
 }

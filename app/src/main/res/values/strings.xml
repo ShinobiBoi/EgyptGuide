@@ -30,9 +30,11 @@
     <string name="confirm_password">Confirm Password</string>
     <string name="repeat_password">Repeat password</string>
     <string name="already_have_an_account">Already have an account?</string>
-
-
-
+    <string name="search_location">Search location</string>
+    <string name="clear">Clear</string>
+    <string name="search_nearby_places">Search nearby places</string>
+    <string name="nearby_places">Nearby Places</string>
+    <string name="selected_place">Selected Place</string>
 
 
 </resources>
