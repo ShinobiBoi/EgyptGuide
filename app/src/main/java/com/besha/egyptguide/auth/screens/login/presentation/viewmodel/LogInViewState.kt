@@ -6,5 +6,4 @@ import com.besha.egyptguide.appcore.mvi.ViewState
 
 data class LogInViewState (
    val logInState: CommonViewState<Unit> = CommonViewState(),
-    val intentSender: IntentSender? = null
 ): ViewState

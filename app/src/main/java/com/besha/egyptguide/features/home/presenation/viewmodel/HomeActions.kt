@@ -1,4 +1,11 @@
 package com.besha.egyptguide.features.home.presenation.viewmodel
 
-class HomeActions {
-}
+import com.besha.egyptguide.appcore.mvi.Action
+
+/*
+sealed class HomeActions : Action {
+
+    object GetPlaces : HomeActions()
+
+
+}*/

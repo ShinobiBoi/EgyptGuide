@@ -1,12 +1,11 @@
 package com.besha.egyptguide.auth.screens.login.presentation.viewmodel
 
-import android.content.Intent
+import android.app.Activity
 import com.besha.egyptguide.appcore.mvi.CommonViewState
 import com.besha.egyptguide.appcore.mvi.MVIBaseViewModel
 import com.besha.egyptguide.auth.screens.login.data.model.LoginRequest
+import com.besha.egyptguide.auth.screens.login.domain.usecases.GoogleSignInUseCase
 import com.besha.egyptguide.auth.screens.login.domain.usecases.LogInUseCase
-import com.besha.egyptguide.auth.screens.login.domain.usecases.SignInWithGoogleResultUseCase
-import com.besha.egyptguide.auth.screens.login.domain.usecases.SignInWithGoogleUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
@@ -17,8 +16,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LogInViewModel @Inject constructor(
     private val logInUseCase: LogInUseCase,
-    private val signInWithGoogleUseCase: SignInWithGoogleUseCase,
-    private val signInWithGoogleResultUseCase: SignInWithGoogleResultUseCase,
+    private val googleSignInUseCase: GoogleSignInUseCase
 ) : MVIBaseViewModel<LogInActions, LogInResults, LogInViewState>() {
 
     override val defaultViewState: LogInViewState
@@ -32,15 +30,6 @@ class LogInViewModel @Inject constructor(
                 handleLogIn(this, action.loginRequest)
             }
 
-            is LogInActions.GoogleSignIn -> {
-                handleGoogleSignIn(this)
-            }
-
-            is LogInActions.GoogleSignInResult -> {
-                handleGoogleSignInResult(this, action.intent)
-
-            }
-
 
             is LogInActions.ResetState -> {
 
@@ -48,21 +37,25 @@ class LogInViewModel @Inject constructor(
 
             }
 
-            else -> {
-
+            is LogInActions.GoogleSignIn -> {
+                handleGoogleSignInResult(this,action.activity)
             }
+
         }
 
     }
 
     private suspend fun handleGoogleSignInResult(
         collector: FlowCollector<LogInResults>,
-        intent: Intent
-    ) {
+        activity: Activity
 
-        val result = signInWithGoogleResultUseCase(intent)
+    ) {
+        collector.emit(LogInResults.LogIn(CommonViewState(isLoading = true)))
+
+        val result = googleSignInUseCase(activity)
 
         if (result.user != null) {
+
             collector.emit(LogInResults.LogIn(CommonViewState(isSuccess = true)))
 
         } else {
@@ -71,16 +64,7 @@ class LogInViewModel @Inject constructor(
 
     }
 
-    private suspend fun handleGoogleSignIn(collector: FlowCollector<LogInResults>) {
 
-
-        collector.emit(LogInResults.LogIn(CommonViewState(isLoading = true)))
-
-        val intentSender = signInWithGoogleUseCase()
-
-        collector.emit(LogInResults.GoogleSignIn(intentSender))
-
-    }
 
     private suspend fun handleLogIn(
         collector: FlowCollector<LogInResults>,

@@ -48,6 +48,7 @@ import com.rejowan.ccpc.CountryCodePickerTextField
 import android.util.Patterns
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Visibility
@@ -204,7 +205,7 @@ fun SignUpScreen(
                 }) {
                     Icon(
                         modifier = Modifier.size(24.dp),
-                        imageVector = Icons.Default.ArrowBack,
+                        imageVector = Icons.Default.ArrowBackIosNew,
                         contentDescription = "Visibility",
                         tint = colorResource(R.color.gray)
                     )

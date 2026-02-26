@@ -11,27 +11,3 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-@Module
-@InstallIn(SingletonComponent::class)
-object AuthModule  {
-
-    @Provides
-    @Singleton
-    fun provideOneTapClient(
-        @ApplicationContext context: Context
-    ): SignInClient {
-        return Identity.getSignInClient(context)
-    }
-
-    @Provides
-    @Singleton
-    fun provideGoogleAuthClient(
-        @ApplicationContext context: Context,
-        oneTapClient: SignInClient
-    ): GoogleAuthClient {
-        return GoogleAuthClient(
-            context = context,
-            oneTapClient = oneTapClient
-        )
-    }
-}

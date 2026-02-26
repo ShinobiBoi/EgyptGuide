@@ -1,5 +1,6 @@
 package com.besha.egyptguide.auth.screens.login.data.repo
 
+import android.app.Activity
 import android.content.Intent
 import android.content.IntentSender
 import com.besha.egyptguide.auth.screens.login.data.google.GoogleAuthClient
@@ -16,12 +17,9 @@ class LogInRepoImp @Inject constructor(private val googleAuthClient: GoogleAuthC
         return googleAuthClient.logIn(loginRequest)
     }
 
-    override suspend fun signInWithGoogle(): IntentSender? {
-        return googleAuthClient.signInRequest()
+    override suspend fun googleSignIn(activity: Activity): GoogleSignInResult {
+        return googleAuthClient.googleSignIn(activity)
     }
 
-    override suspend fun signInWithGoogleResult(intent: Intent): GoogleSignInResult {
-        return googleAuthClient.signInResult(intent)
-    }
 
 }

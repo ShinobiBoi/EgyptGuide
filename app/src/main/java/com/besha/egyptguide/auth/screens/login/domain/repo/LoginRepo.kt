@@ -1,5 +1,6 @@
 package com.besha.egyptguide.auth.screens.login.domain.repo
 
+import android.app.Activity
 import android.content.Intent
 import android.content.IntentSender
 import com.besha.egyptguide.auth.screens.login.data.model.GoogleSignInResult
@@ -11,9 +12,8 @@ interface LoginRepo {
     suspend fun LogIn(loginRequest: LoginRequest): LoginResponse
 
 
-    suspend fun signInWithGoogle(): IntentSender?
+    suspend fun googleSignIn(activity: Activity): GoogleSignInResult
 
-    suspend fun signInWithGoogleResult(intent: Intent): GoogleSignInResult
 
 
 }

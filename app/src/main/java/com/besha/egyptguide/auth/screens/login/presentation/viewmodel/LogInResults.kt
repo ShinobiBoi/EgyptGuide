@@ -17,15 +17,4 @@ sealed class LogInResults : Result<LogInViewState> {
         }
     }
 
-    data class GoogleSignIn(val intentSender: IntentSender?) : LogInResults(){
-        override fun reduce(
-            defaultState: LogInViewState,
-            oldState: LogInViewState
-        ): LogInViewState {
-            return oldState.copy(
-                intentSender = intentSender
-            )
-        }
-    }
-
 }

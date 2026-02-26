@@ -1,6 +1,7 @@
 package com.besha.egyptguide.auth.screens.login.presentation.screen
 
 import android.app.Activity
+import android.util.Log
 import android.util.Patterns
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -30,6 +31,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -75,6 +77,7 @@ fun LogInScreen(
     val viewModel = hiltViewModel<LogInViewModel>()
     val state by viewModel.viewStates.collectAsState()
     val context = LocalContext.current
+    val activity = LocalContext.current as? Activity
 
 
 
@@ -94,23 +97,6 @@ fun LogInScreen(
 
     }
 
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.StartIntentSenderForResult()
-    ) { result ->
-        if ( result.resultCode == Activity.RESULT_OK) {
-            viewModel.executeAction(LogInActions.GoogleSignInResult(result.data ?: return@rememberLauncherForActivityResult))
-
-        }
-    }
-
-
-    LaunchedEffect( state.intentSender) {
-        state.intentSender?.run {
-            launcher.launch(
-                IntentSenderRequest.Builder(state.intentSender!!).build()
-            )
-        }
-    }
 
 
 
@@ -305,7 +291,7 @@ fun LogInScreen(
                 .padding(top = 24.dp)
         ) {
             // Left line
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .weight(1f)
                     .height(1.dp),
@@ -321,7 +307,7 @@ fun LogInScreen(
             )
 
             // Right line
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier
                     .weight(1f)
                     .height(1.dp),
@@ -342,7 +328,7 @@ fun LogInScreen(
             colors = ButtonDefaults.buttonColors(containerColor = colorResource(R.color.white)),
             onClick = {
 
-                viewModel.executeAction(LogInActions.GoogleSignIn)
+                viewModel.executeAction(LogInActions.GoogleSignIn(activity!!))
 
             }
         ) {

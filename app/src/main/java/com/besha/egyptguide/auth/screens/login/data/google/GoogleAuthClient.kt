@@ -1,10 +1,14 @@
 package com.besha.egyptguide.auth.screens.login.data.google
 
 
+import android.app.Activity
 import android.content.Context
-import android.content.Intent
-import android.content.IntentSender
 import android.util.Log
+import androidx.credentials.ClearCredentialStateRequest
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetCredentialResponse
 import com.besha.egyptguide.R
 import com.besha.egyptguide.auth.screens.login.data.model.GoogleSignInResult
 import com.besha.egyptguide.auth.screens.login.data.model.LoginRequest
@@ -12,123 +16,97 @@ import com.besha.egyptguide.auth.screens.login.data.model.LoginResponse
 import com.besha.egyptguide.auth.screens.signup.data.model.SignUpResponse
 import com.besha.egyptguide.auth.screens.login.data.model.UserData
 import com.besha.egyptguide.auth.screens.signup.data.model.SignUpRequest
-import com.google.android.gms.auth.api.identity.BeginSignInRequest
-import com.google.android.gms.auth.api.identity.BeginSignInRequest.GoogleIdTokenRequestOptions
-import com.google.android.gms.auth.api.identity.SignInClient
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.firebase.Firebase
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
+import javax.inject.Inject
 import kotlin.coroutines.cancellation.CancellationException
 
-class GoogleAuthClient(
-    private val context: Context,
-    private val oneTapClient: SignInClient
+
+
+class GoogleAuthClient  @Inject constructor(
+    @ApplicationContext private val context: Context,
 ) {
 
 
     private val auth = Firebase.auth
     private val firestore = FirebaseFirestore.getInstance()
 
-    suspend fun signInRequest(): IntentSender? {
+    private val credentialManager= CredentialManager.create(context)
 
-        val result = try {
-            oneTapClient.beginSignIn(
-                buildSignInRequest()
-            ).await()
+
+
+
+    suspend fun googleSignIn(activity: Activity): GoogleSignInResult {
+        return try {
+
+
+            val googleIdOption = GetGoogleIdOption.Builder()
+                .setServerClientId(context.getString(R.string.google_web_client_id))
+                .setFilterByAuthorizedAccounts(false)
+                .setAutoSelectEnabled(true)
+                .build()
+
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(googleIdOption)
+                .build()
+
+            val result = credentialManager.getCredential(
+                context = activity,
+                request = request
+            )
+
+            handleCredential(result)
 
         } catch (e: Exception) {
-            e.printStackTrace()
             if (e is CancellationException) throw e
-            null
+            GoogleSignInResult(null, e.message)
         }
-        return result?.pendingIntent?.intentSender
     }
 
+    private suspend fun handleCredential(
+        result: GetCredentialResponse
+    ): GoogleSignInResult {
 
-    private fun buildSignInRequest(): BeginSignInRequest {
-        return BeginSignInRequest.builder()
-            .setGoogleIdTokenRequestOptions(
-                GoogleIdTokenRequestOptions.builder()
-                    .setSupported(true)
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(context.getString(R.string.google_web_client_id))
-                    .build()
-            ).setAutoSelectEnabled(true)
-            .build()
-    }
+        val credential = result.credential
 
-    suspend fun signInResult(intent: Intent): GoogleSignInResult {
+        if (credential is CustomCredential &&
+            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+        ) {
 
-        val credential = oneTapClient.getSignInCredentialFromIntent(intent)
-        val googleIdToken = credential.googleIdToken
-        val googleCredentials = GoogleAuthProvider.getCredential(googleIdToken, null)
-        val email = credential.id // One Tap provides the email here
-        Log.d("signInMethods", "email $email")
+            val googleIdTokenCredential =
+                GoogleIdTokenCredential.createFrom(credential.data)
+
+            val googleIdToken = googleIdTokenCredential.idToken
 
 
-        return try {
-            val signInMethods = auth.fetchSignInMethodsForEmail(email).await().signInMethods ?: emptyList()
+            val firebaseCredential =
+                GoogleAuthProvider.getCredential(googleIdToken, null)
 
-            Log.d("signInMethods", signInMethods.toString())
+            val user = auth.signInWithCredential(firebaseCredential)
+                .await()
+                .user ?: throw IllegalStateException("Sign in failed")
 
-
-
-            if (signInMethods.isNotEmpty() && !signInMethods.contains(GoogleAuthProvider.PROVIDER_ID)) {
-
-                Log.d("signInMethods", "email is already registered")
-
-                 return GoogleSignInResult(
-                     user = null,
-                     errorMessage = "This email is already registered using a password. Please log in with your password."
-                 )
-            }
-
-            val user = auth.signInWithCredential(googleCredentials).await().user ?: throw IllegalStateException("User creation failed")
-
-            val userDocRef = firestore.collection("users").document(user.uid)
-            val snapshot = userDocRef.get().await()
-
-            Log.d("signInMethods", "user $user")
-
-            if (!snapshot.exists()) {
-                val userData = hashMapOf(
-                    "uid" to user.uid,
-                    "email" to user.email,
-                    "fullName" to user.displayName,
-                    "phoneNumber" to user.phoneNumber,
-                    "emailVerified" to user.isEmailVerified,
-                    "createdAt" to FieldValue.serverTimestamp(),
-                    "provider" to "google"
-                )
-
-                userDocRef.set(userData).await()
-            }
-
-            GoogleSignInResult(
+            return GoogleSignInResult(
                 user = UserData(
                     userId = user.uid,
                     fullName = user.displayName,
                     email = user.email,
                     phoneNumber = user.phoneNumber,
                     profilePhoto = user.photoUrl?.toString()
-                )
-                ,
+                ),
                 errorMessage = null
             )
-
-
-        } catch (e: Exception) {
-            e.printStackTrace()
-            if (e is CancellationException) throw e
-            GoogleSignInResult(
-                user = null,
-                errorMessage = "something went wrong"
-            )
         }
+
+        return GoogleSignInResult(null, "Invalid credential")
     }
+
 
     suspend fun signUp(signUpRequest: SignUpRequest): SignUpResponse {
         return try {
@@ -212,7 +190,9 @@ class GoogleAuthClient(
 
     suspend fun signOut(){
         try {
-            oneTapClient.signOut().await()
+            credentialManager.clearCredentialState(
+                ClearCredentialStateRequest()
+            )
             auth.signOut()
         }catch (e:Exception){
             e.printStackTrace()
