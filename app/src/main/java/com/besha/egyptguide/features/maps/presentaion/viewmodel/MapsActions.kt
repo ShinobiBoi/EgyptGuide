@@ -15,7 +15,7 @@ sealed class MapsActions() : Action {
 
     object EmptySelectedPlace : MapsActions()
 
-    data class NearBySearch(val currentLocation: LatLng, val query : String) : MapsActions()
+    data class SearchByText(val currentLocation: LatLng, val query : String) : MapsActions()
 
     object EmptyNearBySearch : MapsActions()
 

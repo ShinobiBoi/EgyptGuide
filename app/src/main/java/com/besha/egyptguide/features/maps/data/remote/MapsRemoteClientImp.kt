@@ -1,18 +1,20 @@
 package com.besha.egyptguide.features.maps.data.remote
 
+import com.besha.egyptguide.appcore.data.model.MyPlace
 import com.besha.egyptguide.features.maps.domain.remote.MapsRemoteClient
 import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.tasks.OnSuccessListener
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import com.google.android.libraries.places.api.model.CircularBounds
 import com.google.android.libraries.places.api.model.Place
 import com.google.android.libraries.places.api.net.FetchPlaceRequest
+import com.google.android.libraries.places.api.net.FetchResolvedPhotoUriRequest
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest
 import com.google.android.libraries.places.api.net.PlacesClient
 import com.google.android.libraries.places.api.net.SearchByTextRequest
-import com.google.android.libraries.places.api.net.SearchNearbyRequest
-import com.google.android.libraries.places.api.net.SearchNearbyResponse
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
@@ -43,56 +45,101 @@ class MapsRemoteClientImp @Inject constructor(private val placesClient: PlacesCl
 
     }
 
-    override suspend fun selectPlace(placeId: String, sessionToken: AutocompleteSessionToken): Place {
+    override suspend fun selectPlace(
+        placeId: String,
+        sessionToken: AutocompleteSessionToken
+    ): MyPlace {
 
         val fields = listOf(
             Place.Field.ID,
             Place.Field.DISPLAY_NAME,
             Place.Field.LOCATION,
-            Place.Field.FORMATTED_ADDRESS
+            Place.Field.FORMATTED_ADDRESS,
+            Place.Field.PHOTO_METADATAS // include if you want photo option
         )
 
-        val request =
-            FetchPlaceRequest.builder(placeId, fields).setSessionToken(sessionToken).build()
+        val request = FetchPlaceRequest.builder(placeId, fields)
+            .setSessionToken(sessionToken)
+            .build()
 
+        val place = placesClient.fetchPlace(request)
+            .await()
+            .place
 
-        val result = placesClient.fetchPlace(request).await()
-
-        return result.place
-
-
+        return mapPlaceToMyPlace(place, fetchPhoto = true)
     }
 
-    override suspend fun nearBySearch(currentLocation: LatLng,query : String): List<Place>{
+    override suspend fun nearBySearch(
+        currentLocation: LatLng,
+        query: String
+    ): List<MyPlace> {
 
         val fields = listOf(
             Place.Field.ID,
             Place.Field.DISPLAY_NAME,
+            Place.Field.FORMATTED_ADDRESS,
+            Place.Field.PHOTO_METADATAS,
             Place.Field.LOCATION
         )
 
         val circle = CircularBounds.newInstance(currentLocation, 5000.0)
 
-
-        val request = SearchByTextRequest.builder(
-            query,
-            fields
-        )
+        val request = SearchByTextRequest.builder(query, fields)
             .setLocationBias(circle)
             .setMaxResultCount(10)
             .build()
 
         val result = placesClient.searchByText(request).await()
 
+        return coroutineScope {
 
+            result.places.map { place ->
 
-
-        return result.places
-
+                async {
+                    mapPlaceToMyPlace(place, fetchPhoto = true)
+                }
+            }.awaitAll()
+        }
     }
 
 
 
+    private suspend fun mapPlaceToMyPlace(
+        place: Place,
+        fetchPhoto: Boolean = false
+    ): MyPlace {
 
+        val uri = if (fetchPhoto) {
+            place.photoMetadatas
+                ?.firstOrNull()
+                ?.let { metadata ->
+
+                    try {
+                    val resolvedResponse = placesClient
+                        .fetchResolvedPhotoUri(
+                            FetchResolvedPhotoUriRequest.builder(metadata).build()
+                        )
+                        .await()
+
+                        resolvedResponse.uri
+
+                    } catch (e: Exception) {
+                        null
+                    }
+
+
+                }
+        } else {
+            null
+        }
+
+        return MyPlace(
+            id = place.id,
+            displayName = place.displayName,
+            formattedAddress = place.formattedAddress,
+            location = place.location,
+            imageUri = uri
+        )
+    }
 
 }

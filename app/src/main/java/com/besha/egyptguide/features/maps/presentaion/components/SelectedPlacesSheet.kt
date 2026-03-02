@@ -1,5 +1,7 @@
 package com.besha.egyptguide.features.maps.presentaion.components
 
+import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -19,15 +21,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 import com.besha.egyptguide.R
+import com.besha.egyptguide.appcore.data.model.MyPlace
 import com.google.android.libraries.places.api.model.Place
 
 
 @Composable
 fun SelectedPlacesSheet(
-    place: Place,
+    place: MyPlace,
     onBackClick: () -> Unit
 ) {
     Column(
@@ -74,6 +80,19 @@ fun SelectedPlacesSheet(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+            Log.d("IMAGE","${place.imageUri}")
+            place.imageUri?.let { uri ->
+
+                AsyncImage(
+                    model = uri,
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxWidth(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+
+
         }
     }
 }

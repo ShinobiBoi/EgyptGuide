@@ -58,7 +58,7 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(
                         navController,
-                        startDestination = ScreenResources.AuthRoute,
+                        startDestination = ScreenResources.MainRoute,
                         modifier = Modifier.padding(innerPadding)
                     ) {
 

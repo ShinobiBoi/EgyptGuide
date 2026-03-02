@@ -1,5 +1,6 @@
 package com.besha.egyptguide.features.maps.presentaion.viewmodel
 
+import com.besha.egyptguide.appcore.data.model.MyPlace
 import com.besha.egyptguide.appcore.mvi.CommonViewState
 import com.besha.egyptguide.appcore.mvi.Result
 import com.besha.egyptguide.appcore.mvi.ViewState
@@ -38,7 +39,7 @@ sealed class MapsResults() : Result<MapsViewState> {
         }
     }
 
-    data class SelectedPlace(val place: CommonViewState<Place>) : MapsResults() {
+    data class SelectedPlace(val place: CommonViewState<MyPlace>) : MapsResults() {
         override fun reduce(
             defaultState: MapsViewState,
             oldState: MapsViewState
@@ -56,7 +57,7 @@ sealed class MapsResults() : Result<MapsViewState> {
         }
     }
 
-    data class NearByPlaces(val places: CommonViewState<List<Place>>) : MapsResults() {
+    data class NearByPlaces(val places: CommonViewState<List<MyPlace>>) : MapsResults() {
         override fun reduce(
             defaultState: MapsViewState,
             oldState: MapsViewState

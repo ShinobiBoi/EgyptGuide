@@ -5,9 +5,9 @@ import android.util.Log
 import com.besha.egyptguide.appcore.mvi.CommonViewState
 import com.besha.egyptguide.appcore.mvi.MVIBaseViewModel
 import com.besha.egyptguide.features.maps.domain.usecases.CurrentLocationUseCase
-import com.besha.egyptguide.features.maps.domain.usecases.NearBySearchUseCase
 import com.besha.egyptguide.features.maps.domain.usecases.QueryChangeUseCase
 import com.besha.egyptguide.features.maps.domain.usecases.SetPlaceUseCase
+import com.besha.egyptguide.features.maps.domain.usecases.TextSearchByUseCase
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -22,7 +22,7 @@ class MapsViewModel @Inject constructor(
     private val queryChangeUseCase: QueryChangeUseCase,
     private val setPlaceUseCase: SetPlaceUseCase,
     private val getCurrentLocationUseCase: CurrentLocationUseCase,
-    private val nearBySearchUseCase: NearBySearchUseCase
+    private val textSearchByUseCase: TextSearchByUseCase
 ) : MVIBaseViewModel<MapsActions, MapsResults, MapsViewState>() {
 
 
@@ -64,8 +64,8 @@ class MapsViewModel @Inject constructor(
             }
 
 
-            is MapsActions.NearBySearch -> {
-                handleNearBySearch(action.currentLocation, action.query, this)
+            is MapsActions.SearchByText -> {
+                handleTextSearchBy(action.currentLocation, action.query, this)
             }
 
             is MapsActions.EmptyNearBySearch -> {
@@ -86,13 +86,13 @@ class MapsViewModel @Inject constructor(
 
     }
 
-    private suspend fun handleNearBySearch(
+    private suspend fun handleTextSearchBy(
         currentLocation: LatLng,
         query: String,
         collector: FlowCollector<MapsResults>
     ) {
 
-        val result = nearBySearchUseCase(currentLocation, query)
+        val result = textSearchByUseCase(currentLocation, query)
 
         collector.emit(MapsResults.NearByPlaces(CommonViewState(data = result)))
 

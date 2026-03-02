@@ -1,5 +1,6 @@
 package com.besha.egyptguide.features.maps.domain.remote
 
+import com.besha.egyptguide.appcore.data.model.MyPlace
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.libraries.places.api.model.AutocompletePrediction
 import com.google.android.libraries.places.api.model.AutocompleteSessionToken
@@ -9,8 +10,8 @@ interface MapsRemoteClient {
 
     suspend fun  onQueryChange(newQuery: String, sessionToken: AutocompleteSessionToken): List<AutocompletePrediction>
 
-    suspend fun selectPlace(placeId: String, sessionToken: AutocompleteSessionToken): Place
+    suspend fun selectPlace(placeId: String, sessionToken: AutocompleteSessionToken): MyPlace
 
 
-    suspend fun nearBySearch(currentLocation: LatLng,query : String): List<Place>
+    suspend fun nearBySearch(currentLocation: LatLng,query : String): List<MyPlace>
 }

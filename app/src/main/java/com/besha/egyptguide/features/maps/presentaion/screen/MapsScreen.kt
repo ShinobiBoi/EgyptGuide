@@ -250,7 +250,7 @@ fun MapsScreen(
                                             .clickable {
                                                 state.currentLocation.data?.let {
                                                     viewModel.executeAction(
-                                                        MapsActions.NearBySearch(
+                                                        MapsActions.SearchByText(
                                                             it,
                                                             state.query
                                                         )

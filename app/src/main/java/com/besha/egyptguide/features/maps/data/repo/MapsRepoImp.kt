@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
+import com.besha.egyptguide.appcore.data.model.MyPlace
 import com.besha.egyptguide.features.maps.domain.remote.MapsRemoteClient
 import com.besha.egyptguide.features.maps.domain.repo.MapsRepo
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -35,7 +36,7 @@ class MapsRepoImp @Inject constructor (private val mapsRemoteClient: MapsRemoteC
     override suspend fun selectPlace(
         placeId: String,
         sessionToken: AutocompleteSessionToken
-    ): Place {
+    ): MyPlace {
         return mapsRemoteClient.selectPlace(placeId, sessionToken)
 
     }
@@ -43,7 +44,7 @@ class MapsRepoImp @Inject constructor (private val mapsRemoteClient: MapsRemoteC
     override suspend fun nearBySearch(
         currentLocation: LatLng,
         query: String
-    ): List<Place> {
+    ): List<MyPlace> {
         return mapsRemoteClient.nearBySearch(currentLocation,query)
 
     }

@@ -25,13 +25,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.besha.egyptguide.R
+import com.besha.egyptguide.appcore.data.model.MyPlace
 import com.google.android.libraries.places.api.model.Place
 
 
 @Composable
 fun NearbyPlacesSheet(
-    places: List<Place>,
-    onPlaceClick: (Place) -> Unit,
+    places: List<MyPlace>,
+    onPlaceClick: (MyPlace) -> Unit,
     onCloseClick: () -> Unit
 ) {
     Column(
