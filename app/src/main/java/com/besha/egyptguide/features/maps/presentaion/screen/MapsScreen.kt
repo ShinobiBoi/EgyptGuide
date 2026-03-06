@@ -103,6 +103,7 @@ fun MapsScreen(
                 CameraUpdateFactory.newLatLngZoom(latLng, 16f),
                 durationMs = 800
             )
+            Log.d("TAG", "MapsScreen: ${state.selectedPlace.data}")
         }
         if (state.selectedPlace.data == null && state.nearByPlaces.data.isNullOrEmpty() && scaffoldState.bottomSheetState.isVisible) {
 

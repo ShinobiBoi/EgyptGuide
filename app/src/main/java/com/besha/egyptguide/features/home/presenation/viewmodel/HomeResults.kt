@@ -7,12 +7,41 @@ import com.google.android.gms.maps.model.LatLng
 
 sealed class HomeResults : Result<HomeViewState>{
 
-    data class GetHistoricalPlaces(val places: CommonViewState<List<MyPlace>>) : HomeResults() {
+    data class HistoricalPlaces(val places: CommonViewState<List<MyPlace>>) : HomeResults() {
         override fun reduce(
             defaultState: HomeViewState,
             oldState: HomeViewState
         ): HomeViewState {
-            return oldState.copy(testPlaces = places)
+            return oldState.copy(historicalPlaces = places)
+        }
+    }
+
+    data class HotelPlaces(val places: CommonViewState<List<MyPlace>>) : HomeResults() {
+        override fun reduce(
+            defaultState: HomeViewState,
+            oldState: HomeViewState
+        ): HomeViewState {
+            return oldState.copy(hotelPlaces = places)
+
+        }
+    }
+
+
+    data class RestaurantPLaces(val places: CommonViewState<List<MyPlace>>) : HomeResults() {
+        override fun reduce(
+            defaultState: HomeViewState,
+            oldState: HomeViewState
+        ): HomeViewState{
+            return oldState.copy(restaurantPlaces = places)
+        }
+    }
+
+    data class AttractionsPlaces(val places: CommonViewState<List<MyPlace>>) : HomeResults() {
+        override fun reduce(
+            defaultState: HomeViewState,
+            oldState: HomeViewState
+        ): HomeViewState {
+            return oldState.copy(attractionsPlaces = places)
         }
     }
 
@@ -23,6 +52,15 @@ sealed class HomeResults : Result<HomeViewState>{
             oldState: HomeViewState
         ): HomeViewState {
             return oldState.copy(location = location)
+        }
+    }
+
+    data class Loading(val isLoading: Boolean) : HomeResults() {
+        override fun reduce(
+            defaultState: HomeViewState,
+            oldState: HomeViewState
+        ): HomeViewState {
+            return oldState.copy(isLoading = isLoading)
         }
     }
 

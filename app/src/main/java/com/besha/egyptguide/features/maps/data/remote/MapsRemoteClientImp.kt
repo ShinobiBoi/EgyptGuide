@@ -69,7 +69,7 @@ class MapsRemoteClientImp @Inject constructor(private val placesClient: PlacesCl
         return mapPlaceToMyPlace(place, fetchPhoto = true)
     }
 
-    override suspend fun nearBySearch(
+    override suspend fun searchByText(
         currentLocation: LatLng,
         query: String
     ): List<MyPlace> {
@@ -78,7 +78,6 @@ class MapsRemoteClientImp @Inject constructor(private val placesClient: PlacesCl
             Place.Field.ID,
             Place.Field.DISPLAY_NAME,
             Place.Field.FORMATTED_ADDRESS,
-            Place.Field.PHOTO_METADATAS,
             Place.Field.LOCATION
         )
 
@@ -96,7 +95,7 @@ class MapsRemoteClientImp @Inject constructor(private val placesClient: PlacesCl
             result.places.map { place ->
 
                 async {
-                    mapPlaceToMyPlace(place, fetchPhoto = true)
+                    mapPlaceToMyPlace(place, fetchPhoto = false)
                 }
             }.awaitAll()
         }

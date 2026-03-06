@@ -19,22 +19,34 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val nearBySearchUseCase: NearBySearchUseCase,
     private val getCurrentLocationUseCase: CurrentLocationUseCase,
-    ) : MVIBaseViewModel<HomeActions, HomeResults, HomeViewState>() {
+) : MVIBaseViewModel<HomeActions, HomeResults, HomeViewState>() {
 
 
     override val defaultViewState: HomeViewState
-        get()= HomeViewState()
+        get() = HomeViewState()
 
     override fun handleAction(action: HomeActions): Flow<HomeResults> = flow {
 
-        when (action){
-            is HomeActions.GetHistoricalPlaces ->{
-                handleGetHistoricalPlaces(action.currentLocation,this)
+        when (action) {
 
-
+            is HomeActions.GetAttractionsPlaces -> {
+                handleGetAttractionsPlaces(action.currentLocation, this)
             }
+
+            is HomeActions.GetHistoricalPlaces -> {
+                handleGetHistoricalPlaces(action.currentLocation, this)
+            }
+
+            is HomeActions.GetHotelPlaces -> {
+                handleGetHotelPlaces(action.currentLocation, this)
+            }
+
+            is HomeActions.GetRestaurantsPlaces -> {
+                handleGetRestaurantsPlaces(action.currentLocation, this)
+            }
+
             is HomeActions.GetCurrentLocation -> {
-             try {
+                try {
                     getCurrentLocationUseCase().collect { latLng ->
                         emit(HomeResults.CurrentLocation(CommonViewState(data = latLng)))
 
@@ -49,13 +61,57 @@ class HomeViewModel @Inject constructor(
 
     }
 
+
+    private suspend fun handleGetAttractionsPlaces(
+        currentLocation: LatLng,
+        collector: FlowCollector<HomeResults>
+    ) {
+        collector.emit(HomeResults.AttractionsPlaces(CommonViewState(isLoading = true)))
+
+        val result = nearBySearchUseCase(currentLocation, listOf(PlaceTypes.TOURIST_ATTRACTION))
+
+        collector.emit(HomeResults.AttractionsPlaces(CommonViewState(data = result)))
+
+    }
+
     private suspend fun handleGetHistoricalPlaces(
         currentLocation: LatLng,
         collector: FlowCollector<HomeResults>
     ) {
-        val result = nearBySearchUseCase(currentLocation, listOf(PlaceTypes.TOURIST_ATTRACTION))
+        collector.emit(HomeResults.HistoricalPlaces(CommonViewState(isLoading = true)))
 
-        collector.emit(HomeResults.GetHistoricalPlaces(CommonViewState(data = result)))
+        val result = nearBySearchUseCase(
+            currentLocation, listOf(
+                "museum",
+                "monument",
+            )
+        )
+
+        collector.emit(HomeResults.HistoricalPlaces(CommonViewState(data = result)))
+    }
+
+
+    private suspend fun handleGetHotelPlaces(
+        currentLocation: LatLng,
+        collector: FlowCollector<HomeResults>
+    ) {
+        collector.emit(HomeResults.HotelPlaces(CommonViewState(isLoading = true)))
+
+        val result = nearBySearchUseCase(currentLocation, listOf("hotel"))
+
+        collector.emit(HomeResults.HotelPlaces(CommonViewState(data = result)))
+
+    }
+
+    private suspend fun handleGetRestaurantsPlaces(
+        currentLocation: LatLng,
+        collector: FlowCollector<HomeResults>
+    ) {
+        collector.emit(HomeResults.RestaurantPLaces(CommonViewState(isLoading = true)))
+
+        val result = nearBySearchUseCase(currentLocation, listOf(PlaceTypes.RESTAURANT))
+
+        collector.emit(HomeResults.RestaurantPLaces(CommonViewState(data = result)))
     }
 
 

@@ -35,6 +35,7 @@
     <string name="search_nearby_places">Search nearby places</string>
     <string name="nearby_places">Nearby Places</string>
     <string name="selected_place">Selected Place</string>
+    <string name="near_by_locations">Near By Locations</string>
 
 
 </resources>

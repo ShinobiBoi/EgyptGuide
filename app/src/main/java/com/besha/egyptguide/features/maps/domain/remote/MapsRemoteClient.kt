@@ -13,5 +13,5 @@ interface MapsRemoteClient {
     suspend fun selectPlace(placeId: String, sessionToken: AutocompleteSessionToken): MyPlace
 
 
-    suspend fun nearBySearch(currentLocation: LatLng,query : String): List<MyPlace>
+    suspend fun searchByText(currentLocation: LatLng,query : String): List<MyPlace>
 }

@@ -18,6 +18,7 @@ import com.besha.egyptguide.features.home.presenation.screen.HomeScreen
 import com.besha.egyptguide.features.main.presentaion.components.CustomBottomNavigationBar
 import com.besha.egyptguide.features.main.presentaion.viewmodel.BottomNavViewModel
 import com.besha.egyptguide.features.maps.presentaion.screen.MapsScreen
+import com.besha.egyptguide.features.profile.presenation.screen.ProfileScreen
 
 @Composable
 fun MainScreen(rootController: NavController) {
@@ -27,8 +28,6 @@ fun MainScreen(rootController: NavController) {
     val navController = rememberNavController()
     val bottomNavViewModel = hiltViewModel<BottomNavViewModel>()
     val currentRoute by bottomNavViewModel.currentRoute.collectAsState()
-
-    val lastNavigatedMediaId = rememberSaveable { mutableStateOf(-1) }
 
 
     Scaffold(
@@ -64,6 +63,8 @@ fun MainScreen(rootController: NavController) {
 
             }
             composable<ScreenResources.ProfileRoute> {
+
+                ProfileScreen(rootController,navController)
 
             }
             composable<ScreenResources.ExploreRoute> {

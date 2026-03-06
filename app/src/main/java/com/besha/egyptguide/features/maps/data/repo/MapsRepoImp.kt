@@ -41,11 +41,11 @@ class MapsRepoImp @Inject constructor (private val mapsRemoteClient: MapsRemoteC
 
     }
 
-    override suspend fun nearBySearch(
+    override suspend fun searchByText(
         currentLocation: LatLng,
         query: String
     ): List<MyPlace> {
-        return mapsRemoteClient.nearBySearch(currentLocation,query)
+        return mapsRemoteClient.searchByText(currentLocation,query)
 
     }
 
